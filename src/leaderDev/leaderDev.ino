@@ -127,23 +127,30 @@ void end_loop(){
 */
 
 #include <ESP8266WiFi.h>
-#include <WiFiClient.h> 
+//#include <WiFiClient.h> 
 #include <WiFiUDP.h>
 #include "wifiConfig.h"
 
 const char ssid[] = MY_SSID; // SSID
 const char pass[] = MY_SSID_PASSWORD;  // password
-const int localPort = 10000;      // 受信ポート番号
 
-const IPAddress ip(192, 168, 4, 1);       // IPアドレス(ゲートウェイも兼ねる)
-const IPAddress subnet(255, 255, 255, 0); // サブネットマスク
+const IPAddress ip(LEADER_IP_ADDRESS);       // IPアドレス(ゲートウェイも兼ねる)
+const IPAddress subnet(MY_SUBNETMASK); // サブネットマスク
 
-WiFiUDP udp;
-static const char *kRemoteIpadr = "192.168.4.2";  //送信先のIPアドレス
-static const int kRmoteUdpPort = 5000; //送信先のポート
+WiFiUDP udp_Tx;
+WiFiUDP udp_Rx;
+
+const int port_1_Rx = LEADER_PORT_RX1;      // 受信ポート番号
+
+//static const char *kRemoteIpadr = "192.168.4.2";  //送信先のIPアドレス
+static const IPAddress follower_1_IP(FOLLOWER_IP_ADDRESS_1);  //送信先のIPアドレス
+//static const int kRmoteUdpPort = 5000; //送信先のポート
+static const int port_1_Tx = LEADER_PORT_TX1; //送信用のポート
+static const int follower_1_Port_Rx = FOLLOWER_PORT_RX; //送信先のポート
 
 void setup() {
   Serial.begin(115200);
+  delay(100);
 
   WiFi.mode(WIFI_AP);
   WiFi.softAP(ssid, pass);           // SSIDとパスの設定
@@ -155,16 +162,27 @@ void setup() {
   Serial.println(myIP);
 
   Serial.println("Starting UDP");
-  udp.begin(localPort);  // UDP通信の開始(引数はポート番号)
+  udp_Tx.begin(port_1_Tx);  // UDP通信の開始(引数はポート番号)
+  udp_Rx.begin(port_1_Rx);  // UDP通信の開始(引数はポート番号)
 
   Serial.print("Local port: ");
-  Serial.println(localPort);
+  //Serial.println(localPort);
 }
 
 void loop() {
-  udp.beginPacket(kRemoteIpadr, kRmoteUdpPort);
-  udp.write('a');  //10進数のaskiiで送信される
-  udp.endPacket();
+  
+  if (udp_Rx.parsePacket()) {
+    char i = udp_Rx.read();  //ceramie追記 askiiから文字列へ
+    udp_Rx.flush();
+    Serial.print("back : ");
+    Serial.println(i); // UDP通信で来た値を表示
+  }
 
-  delay(3000);
+  if( Serial.available() > 0 ){ 
+    char data = Serial.read();
+    Serial.println(data);
+    udp_Tx.beginPacket(follower_1_IP, follower_1_Port_Rx);
+    udp_Tx.write(data);  //10進数のaskiiで送信される
+    udp_Tx.endPacket();
+  }
 }
