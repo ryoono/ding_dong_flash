@@ -50,6 +50,8 @@ int HLED_lighting_counter;
 int ledY_sta;
 int ledR_sta;
 
+int input_counter;
+
 // ハイパワーLEDの初期設定
 void HLED_setup(){
 
@@ -67,6 +69,8 @@ void setup() {
   pinMode( SA, INPUT);
   digitalWrite( LED_Y, ledY_sta);
   digitalWrite( LED_R, ledR_sta);
+
+  input_counter = 0;
   
   Serial.begin(115200);
   delay(100);
@@ -117,23 +121,31 @@ void loop() {
 
   //if( Serial.available() > 0 ){ 
   if( digitalRead( SA ) == HIGH ){
-    char data = Serial.read();
-    Serial.println(data);
-    udp_Tx_1.beginPacket(follower_1_IP, follower_1_Port_Rx);
-    udp_Tx_1.write('1');  //10進数のaskiiで送信される
-    udp_Tx_1.endPacket();
 
-    udp_Tx_2.beginPacket(follower_2_IP, follower_2_Port_Rx);
-    udp_Tx_2.write('2');  //10進数のaskiiで送信される
-    udp_Tx_2.endPacket();
+    input_counter++;
+    if( input_counter == 100 ){
+      
+      char data = Serial.read();
+      Serial.println(data);
+      udp_Tx_1.beginPacket(follower_1_IP, follower_1_Port_Rx);
+      udp_Tx_1.write('1');  //10進数のaskiiで送信される
+      udp_Tx_1.endPacket();
+  
+      udp_Tx_2.beginPacket(follower_2_IP, follower_2_Port_Rx);
+      udp_Tx_2.write('2');  //10進数のaskiiで送信される
+      udp_Tx_2.endPacket();
+  
+      udp_Tx_3.beginPacket(follower_3_IP, follower_3_Port_Rx);
+      udp_Tx_3.write('3');  //10進数のaskiiで送信される
+      udp_Tx_3.endPacket();
 
-    udp_Tx_3.beginPacket(follower_3_IP, follower_3_Port_Rx);
-    udp_Tx_3.write('3');  //10進数のaskiiで送信される
-    udp_Tx_3.endPacket();
-
-    // ハイパワーLED点灯準備
+      // ハイパワーLED点灯準備
       HLED_lighting_interval  = HLED_LIGHTING_INTERVAL;
-      HLED_lighting_counter   = HLED_LIGHTING_COUNTER;
+      HLED_lighting_counter   = HLED_LIGHTING_COUNTER; 
+    }
+  }
+  else{
+    input_counter = 0;
   }
 
   // 指定回数点滅させる
