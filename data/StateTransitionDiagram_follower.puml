@@ -7,10 +7,10 @@
 
 点灯リクエスト待ち: do / UDP受信監視
 
-ハイパワーLED点灯: do / ハイパワーLED点灯処理
+ハイパワーLED点灯: entry / ハイパワーLED点灯処理
 ハイパワーLED点灯: do / LEDタイマ更新
 
-ハイパワーLED消灯: do / ハイパワーLED消灯処理
+ハイパワーLED消灯: entry / ハイパワーLED消灯処理
 ハイパワーLED消灯: do / LEDタイマ更新
 
 @enduml
