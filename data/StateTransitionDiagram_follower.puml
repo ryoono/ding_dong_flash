@@ -1,0 +1,16 @@
+@startuml StateTransitionDiagram_leader
+ 
+[*] --> 点灯リクエスト待ち
+点灯リクエスト待ち --> ハイパワーLED点灯 : 点灯リクエスト受信\n/ LEDタイマ = 0
+ハイパワーLED点灯 --> ハイパワーLED消灯 : LEDタイマ >= 300[ms]\n/ LEDタイマ = 0
+ハイパワーLED消灯 --> 点灯リクエスト待ち :  LEDタイマ >= 300[ms]
+
+点灯リクエスト待ち: do / UDP受信監視
+
+ハイパワーLED点灯: do / ハイパワーLED点灯処理
+ハイパワーLED点灯: do / LEDタイマ更新
+
+ハイパワーLED消灯: do / ハイパワーLED消灯処理
+ハイパワーLED消灯: do / LEDタイマ更新
+
+@enduml
