@@ -7,9 +7,9 @@
 
 // 状態定義
 int state;
-#define LIGHTING_REQUEST_WAIT 0
-#define HIGH_POWER_LED_ON     10
-#define HIGH_POWER_LED_OFF    20
+#define LIGHTING_REQUEST_WAIT 0   // 点灯リクエスト待ち
+#define HIGH_POWER_LED_ON     10  // ハイパワーLED点灯
+#define HIGH_POWER_LED_OFF    20  // ハイパワーLED消灯
 
 // LEDのI/Oポート設定
 #define LED_R 2
@@ -20,24 +20,24 @@ int HLED_lighting_interval;
 #define HLED_LIGHTING_INTERVAL  500   // 間隔：300[ms]
 
 // 書き込むデバイス子機に対応する定数をコメントアウトしてコンパイルする
-//#define FOLLOWER1
+#define FOLLOWER1
 //#define FOLLOWER2
-#define FOLLOWER3
+//#define FOLLOWER3
 
 // この書き方あんまりよくない気がする
 // デバイスの数が増えたら管理が大変になる
 #ifdef FOLLOWER1
 // 自機のID情報
-static const char id = '1';
+static const char id = FOLLOWER_ID_1;
 // このデバイスのipアドレス
 static const IPAddress ip( FOLLOWER_IP_ADDRESS_1 );
 #endif
 #ifdef FOLLOWER2
-static const char id = '2';
+static const char id = FOLLOWER_ID_2;
 static const IPAddress ip( FOLLOWER_IP_ADDRESS_2 );
 #endif
 #ifdef FOLLOWER3
-static const char id = '3';
+static const char id = FOLLOWER_ID_3;
 static const IPAddress ip( FOLLOWER_IP_ADDRESS_3 );
 #endif
 
@@ -69,15 +69,10 @@ void WiFi_setup(){
     ledY_sta = !ledY_sta;
     digitalWrite( LED_Y, ledY_sta);
     delay(500);
-//    Serial.println(".");
   }
   ledY_sta = HIGH;
   digitalWrite( LED_Y, ledY_sta);
-//  Serial.print("AP IP address: ");
-//  IPAddress myIP = WiFi.softAPIP();
-//  Serial.println(myIP);
 
-//  Serial.println("Starting UDP");
   udp_Rx.begin( port_Rx );  // UDP通信の開始(引数はポート番号)
 }
 
@@ -208,7 +203,6 @@ void WiFi_connection_chk(){
   if( WiFi.status() != WL_CONNECTED ){
     
     WiFi.disconnect();
-//    Serial.println("disconnect!");
     // ハイパワーLEDが点灯した状態でWiFiチェックが入ると、ずっと点灯してしまうためリセット
     HLED_setup();
     WiFi_setup();

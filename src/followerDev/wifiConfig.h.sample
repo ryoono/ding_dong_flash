@@ -15,6 +15,11 @@
 
 #define FOLLOWER_PORT_RX      8081            // 子機ポート番号(親機からの受信用)
 
+// デバイスID
+#define FOLLOWER_ID_1 '1' // 子機1のIPアドレス
+#define FOLLOWER_ID_2 '2' // 子機2のIPアドレス
+#define FOLLOWER_ID_3 '3' // 子機3のIPアドレス
+
 // AP情報
 #define MY_SSID               "****"    // SSID
 #define MY_SSID_PASSWORD      "****"    // パスワード
