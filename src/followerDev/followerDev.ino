@@ -3,7 +3,8 @@
  */
 #include <ESP8266WiFi.h>
 #include <WiFiUDP.h>
-#include "wifiConfig.h"
+#include "apInfo.h"
+#include "networkInfo.h"
 
 // 状態定義
 int state;
@@ -17,9 +18,10 @@ int state;
 
 // ハイパワーLEDの点滅間隔
 int HLED_lighting_interval;
-#define HLED_LIGHTING_INTERVAL  500   // 間隔：300[ms]
+#define HLED_LIGHTING_INTERVAL  300   // 間隔：300[ms]
 
 // 書き込むデバイス子機に対応する定数をコメントアウトしてコンパイルする
+
 #define FOLLOWER1
 //#define FOLLOWER2
 //#define FOLLOWER3
@@ -59,16 +61,16 @@ int ledR_sta;
 void WiFi_setup(){
 
   // 子機モードでAPにアクセスする
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, pass);
-  delay(100); // 設定反映待ち
+  WiFi.mode( WIFI_STA );
+  WiFi.begin( ssid, pass);
+  delay( 100 ); // 設定反映待ち
   
-  WiFi.config(ip, ip, subnet);
+  WiFi.config( ip, ip, subnet);
   while( WiFi.status() != WL_CONNECTED ){
     
     ledY_sta = !ledY_sta;
     digitalWrite( LED_Y, ledY_sta);
-    delay(500);
+    delay( 500 );
   }
   ledY_sta = HIGH;
   digitalWrite( LED_Y, ledY_sta);

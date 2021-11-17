@@ -1,0 +1,8 @@
+#ifndef _APINFO_H_
+#define _APINFO_H_
+
+// AP情報
+#define MY_SSID               "xxxx"  // SSID
+#define MY_SSID_PASSWORD      "xxxx"  // パスワード
+
+#endif

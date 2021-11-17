@@ -1,5 +1,5 @@
-#ifndef UDPINFO_H
-#define UDPINFO_H
+#ifndef _NETWORKINFO_H
+#define _NETWORKINFO_H
 
 // IPアドレス情報
 #define LEADER_IP_ADDRESS     192,168,1,1     // 親機のIPアドレス
@@ -19,9 +19,5 @@
 #define FOLLOWER_ID_1 '1' // 子機1のIPアドレス
 #define FOLLOWER_ID_2 '2' // 子機2のIPアドレス
 #define FOLLOWER_ID_3 '3' // 子機3のIPアドレス
-
-// AP情報
-#define MY_SSID               "****"    // SSID
-#define MY_SSID_PASSWORD      "****"    // パスワード
 
 #endif

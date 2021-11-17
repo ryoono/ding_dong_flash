@@ -1,19 +1,20 @@
 /*
  * ピンポンフラッシュのデバイス親機
  */
-
 #include <ESP8266WiFi.h>
 #include <WiFiUDP.h>
-#include "wifiConfig.h"
+#include "apInfo.h"
+#include "networkInfo.h"
 
 // 状態定義
 int state;
-#define INTERCOM_PRESSED_WAIT 0
-#define SEND_LIGHTING_REQUEST 10
-#define HIGH_POWER_LED_ON     20
-#define HIGH_POWER_LED_OFF    30
+#define INTERCOM_PRESSED_WAIT 0   // インターホン押下待ち
+#define SEND_LIGHTING_REQUEST 10  // 点灯リクエスト送信
+#define HIGH_POWER_LED_ON     20  // ハイパワーLED点灯
+#define HIGH_POWER_LED_OFF    30  // ハイパワーLED消灯
 
 // ハイパワーLEDの点滅間隔
+int HLED_lighting_interval;
 #define HLED_LIGHTING_INTERVAL  300   // 間隔：300[ms]
 
 // LEDのI/Oポート設定
@@ -34,15 +35,12 @@ WiFiUDP udp_Tx_3;
 static const IPAddress follower_1_IP( FOLLOWER_IP_ADDRESS_1 );  //送信先のIPアドレス
 static const IPAddress follower_2_IP( FOLLOWER_IP_ADDRESS_2 );
 static const IPAddress follower_3_IP( FOLLOWER_IP_ADDRESS_3 );
-static const int port_1_Tx = LEADER_PORT_TX1; //送信用のポート
+static const int port_1_Tx = LEADER_PORT_TX1;                   //送信用のポート
 static const int port_2_Tx = LEADER_PORT_TX2;
 static const int port_3_Tx = LEADER_PORT_TX3;
-static const int follower_1_Port_Rx = FOLLOWER_PORT_RX; //送信先のポート
+static const int follower_1_Port_Rx = FOLLOWER_PORT_RX;         //送信先のポート
 static const int follower_2_Port_Rx = FOLLOWER_PORT_RX;
 static const int follower_3_Port_Rx = FOLLOWER_PORT_RX;
-
-// ハイパワーLEDの点滅間隔
-int HLED_lighting_interval;
 
 // HIGH：LED ON / LOW：LED OFF
 int ledY_sta;
