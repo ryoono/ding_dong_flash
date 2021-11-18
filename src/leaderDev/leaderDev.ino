@@ -92,10 +92,7 @@ void loop() {
       // インターホンが100ms連続で押下されていた場合、
       // 点灯リクエストへ遷移
       if( digitalRead( SA ) == HIGH ){
-        if( ++input_cnt >= 100 ){
-
-          state = SEND_LIGHTING_REQUEST;
-        }
+        if( ++input_cnt >= 100 )  state = SEND_LIGHTING_REQUEST;
       }
       else{
         input_cnt = 0;
