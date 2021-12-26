@@ -13,17 +13,32 @@ int state;
 #define HIGH_POWER_LED_OFF    20  // ハイパワーLED消灯
 
 // LEDのI/Oポート設定
-#define LED_R 2
-#define LED_Y 4
+#define LED_HP  5
+#define LED_Y   16
+// HIGH：LED ON / LOW：LED OFF
+int ledY_sta;
+int ledHP_sta;
+
+// SPのI/Oポート設定
+#define SP      14
+// HIGH：SP_ON / LOW：SP OFF
+int sp_sta;
+
+// SWのI/Oポート設定
+#define SW  2
 
 // ハイパワーLEDの点滅間隔
 int HLED_lighting_interval;
 #define HLED_LIGHTING_INTERVAL  300   // 間隔：300[ms]
 
-// 書き込むデバイス子機に対応する定数をコメントアウトしてコンパイルする
+// SPリセット時限
+int sp_reset_cnt;
+int sp_flag;
+#define SP_RESET_CNT  2000  // 2000[ms]
 
-#define FOLLOWER1
-//#define FOLLOWER2
+// 書き込むデバイス子機に対応する定数をコメントアウトしてコンパイルする
+//#define FOLLOWER1
+#define FOLLOWER2
 //#define FOLLOWER3
 
 // この書き方あんまりよくない気がする
@@ -54,10 +69,7 @@ const char pass[] = MY_SSID_PASSWORD; // password
 // UDP用のポート設定
 WiFiUDP udp_Rx;
 
-// HIGH：LED ON / LOW：LED OFF
-int ledY_sta;
-int ledR_sta;
-
+// ネットワーク初期設定
 void WiFi_setup(){
 
   // 子機モードでAPにアクセスする
@@ -78,41 +90,35 @@ void WiFi_setup(){
   udp_Rx.begin( port_Rx );  // UDP通信の開始(引数はポート番号)
 }
 
-//static void Serial_setup()
-//{
-//  Serial.begin(115200);
-//  Serial.println(""); // to separate line  
-//}
-
 // IOポートの初期設定
 void IO_setup(){
   
-  ledY_sta = HIGH;
-  ledR_sta = LOW;
-  pinMode( LED_Y, OUTPUT);
-  pinMode( LED_R, OUTPUT);
-  digitalWrite( LED_Y, ledY_sta);
-  digitalWrite( LED_R, ledR_sta);
+  pinMode(  LED_Y, OUTPUT);
+  pinMode( LED_HP, OUTPUT);
+  pinMode(     SP, OUTPUT);
+  pinMode(     SW,  INPUT);
 }
 
-// ハイパワーLEDの初期設定
-void HLED_setup(){
+// 状態のリセット
+void state_reset(){
 
+  ledY_sta  = LOW;
+  ledHP_sta = LOW;
+  sp_sta    = LOW;
+  digitalWrite(  LED_Y,  ledY_sta);
+  digitalWrite( LED_HP, ledHP_sta);
+  digitalWrite(     SP,    sp_sta);
+  state = LIGHTING_REQUEST_WAIT;
   HLED_lighting_interval  = 0;
-  // ハイパワーLED消灯処理
+  sp_reset_cnt = 0;
+  sp_flag = false;
 }
 
 void setup() {
-
-  // 状態の初期化
-  state = 0;
   
-  // I/Oポートの初期設定
-  IO_setup();   // I/Oポートの初期設定
-  // ハイパワーLEDの初期設定
-  HLED_setup();
-//  Serial_setup();
-  WiFi_setup(); // ネットワークの初期設定
+  IO_setup();     // IOポートの初期設定
+  state_reset();  // 状態のリセット
+  WiFi_setup();   // ネットワーク初期設定
 }
 
 void loop() 
@@ -137,13 +143,31 @@ void loop()
         if( data == id ){
 
           // ハイパワーLED点灯処理
-          // ここに書く
-          ledR_sta = HIGH;
-          digitalWrite( LED_R, ledR_sta);
-          HLED_lighting_interval = 0; // タイマリセット
+          ledHP_sta = HIGH;
+          digitalWrite( LED_HP, ledHP_sta);
+
+          // タイマリセット
+          HLED_lighting_interval = 0;
+          sp_reset_cnt = 0;
+
+          // スピーカ鳴動処理
+          if( sp_flag ){
+            sp_flag = false;
+            sp_sta = HIGH;
+            digitalWrite( SP, sp_sta);
+          }
           state = HIGH_POWER_LED_ON;
         }
-        
+      }
+
+      // スピーカが連続で何度も鳴動するとうるさいため
+      // インターホンが鳴りやんで次の来客待ちになったら鳴動可能状態にする
+      // デバイス親機からの来客情報が2000msec来なければ、インターホン親機のA接点が閉じたと判断する
+      if( sp_reset_cnt >= SP_RESET_CNT ){
+        sp_flag = true;
+      }
+      else{
+        sp_reset_cnt++;
       }
       break;
 
@@ -156,9 +180,11 @@ void loop()
 
         // ハイパワーLED消灯処理
         // ここに書く
-        ledR_sta = LOW;
-        digitalWrite( LED_R, ledR_sta);
+        ledHP_sta = LOW;
+        digitalWrite( LED_HP, ledHP_sta);
         HLED_lighting_interval = 0; // タイマリセット
+        sp_sta = LOW;
+        digitalWrite( SP, sp_sta);
         state = HIGH_POWER_LED_OFF;
       }
       break;
@@ -172,8 +198,8 @@ void loop()
 
         // ハイパワーLED消灯処理
         // ここに書く
-        ledR_sta = LOW;
-        digitalWrite( LED_R, ledR_sta);
+        ledHP_sta = LOW;
+        digitalWrite( LED_HP, ledHP_sta);
         HLED_lighting_interval = 0; // タイマリセット
         state = LIGHTING_REQUEST_WAIT;
       }
@@ -182,13 +208,9 @@ void loop()
     // ###################################
     // ## 例外処理 点灯リクエスト待ちへ遷移 ##
     default:
-      // どの状態でこの処理を行うのか分からないため、ハイパワーLED消灯処理
-      // ここに書く
-      // ハイパワーLED消灯処理
-      // ここに書く
-      ledR_sta = LOW;
-      digitalWrite( LED_R, ledR_sta);
-      state = LIGHTING_REQUEST_WAIT;
+      // どの状態でこの処理を行うのか分からないため、
+      // 状態を初期化する
+      state_reset();
       break;
   } 
 
@@ -206,7 +228,7 @@ void WiFi_connection_chk(){
     
     WiFi.disconnect();
     // ハイパワーLEDが点灯した状態でWiFiチェックが入ると、ずっと点灯してしまうためリセット
-    HLED_setup();
+    state_reset();
     WiFi_setup();
   }
 }

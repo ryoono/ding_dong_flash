@@ -18,9 +18,10 @@ int HLED_lighting_interval;
 #define HLED_LIGHTING_INTERVAL  300   // 間隔：300[ms]
 
 // LEDのI/Oポート設定
-#define LED_R 2
-#define LED_Y 4
-#define SA 13
+#define LED_HP  5
+#define LED_Y   16
+#define INTERCOM_NORMAL_OPEN 14
+#define SW      2
 
 const char ssid[] = MY_SSID;          // SSID
 const char pass[] = MY_SSID_PASSWORD; // password
@@ -44,7 +45,7 @@ static const int follower_3_Port_Rx = FOLLOWER_PORT_RX;
 
 // HIGH：LED ON / LOW：LED OFF
 int ledY_sta;
-int ledR_sta;
+int ledHP_sta;
 
 // インターホン押下カウンタ
 int input_cnt;
@@ -53,23 +54,25 @@ int input_cnt;
 void HLED_setup(){
 
   HLED_lighting_interval = 0;
-  // ハイパワーLED消灯処理
+  ledHP_sta = LOW;
+  digitalWrite( LED_HP, ledHP_sta);
 }
 
 void setup() {
 
-  ledY_sta = HIGH;
-  ledR_sta = LOW;
-  pinMode( LED_Y, OUTPUT);
-  pinMode( LED_R, OUTPUT);
-  pinMode( SA, INPUT);
+  ledY_sta = LOW;
+  ledHP_sta = LOW;
+  pinMode(  LED_Y, OUTPUT);
+  pinMode( LED_HP, OUTPUT);
+  pinMode(     SW, INPUT);
+  pinMode( INTERCOM_NORMAL_OPEN, INPUT);
   digitalWrite( LED_Y, ledY_sta);
-  digitalWrite( LED_R, ledR_sta);
+  digitalWrite( LED_HP, ledHP_sta);
 
   WiFi.mode( WIFI_AP );
   WiFi.softAP( ssid, pass);           // SSIDとパスの設定
   delay( 100 );                       // 追記：このdelayを入れないと失敗する場合がある
-  WiFi.softAPConfig( ip, ip, subnet); // IPアドレス、ゲートウェイ、サブネットマスクの設定;
+  WiFi.softAPConfig( ip, ip, subnet); // IPアドレス、ゲートウェイ、サブネットマスクの設定
 
   udp_Tx_1.begin( port_1_Tx );  // UDP通信の開始(引数はポート番号)
   udp_Tx_2.begin( port_2_Tx );  // UDP通信の開始(引数はポート番号)
@@ -77,6 +80,9 @@ void setup() {
   
   HLED_setup();
 
+  ledY_sta = HIGH;
+  digitalWrite( LED_Y, ledY_sta);
+  
   state = INTERCOM_PRESSED_WAIT;
   input_cnt = 0;
 }
@@ -89,9 +95,9 @@ void loop() {
     // ## インターホン押下待ち ##
     case INTERCOM_PRESSED_WAIT:
 
-      // インターホンが100ms連続で押下されていた場合、
+      // インターホンが100ms連続(チャタリング防止)で押下されていた場合、
       // 点灯リクエストへ遷移
-      if( digitalRead( SA ) == HIGH ){
+      if( digitalRead( INTERCOM_NORMAL_OPEN ) == HIGH ){
         if( ++input_cnt >= 100 )  state = SEND_LIGHTING_REQUEST;
       }
       else{
@@ -117,8 +123,8 @@ void loop() {
       udp_Tx_3.endPacket();
 
       HLED_lighting_interval = 0;
-      ledR_sta = HIGH;
-      digitalWrite( LED_R, ledR_sta);
+      ledHP_sta = HIGH;
+      digitalWrite( LED_HP, ledHP_sta);
 
       state = HIGH_POWER_LED_ON;
       break;
@@ -131,8 +137,8 @@ void loop() {
       if( ++HLED_lighting_interval >= HLED_LIGHTING_INTERVAL ){
         
         HLED_lighting_interval = 0;
-        ledR_sta = LOW;
-        digitalWrite( LED_R, ledR_sta);
+        ledHP_sta = LOW;
+        digitalWrite( LED_HP, ledHP_sta);
         state = HIGH_POWER_LED_OFF;
       }
       break;
@@ -153,9 +159,7 @@ void loop() {
     // ## 例外処理 インターホン押下待ちへ遷移 ##
     default:
       // どの状態でこの処理を行うのか分からないため、ハイパワーLED消灯処理
-      // ここに書く
-      ledR_sta = LOW;
-      digitalWrite( LED_R, ledR_sta);
+      HLED_setup();
       input_cnt = 0;
       state = INTERCOM_PRESSED_WAIT;
       break;
