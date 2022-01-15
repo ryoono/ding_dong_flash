@@ -1,4 +1,8 @@
-# ding_dong_flash
+# ding_dong_flash  
+
+## 取扱説明書  
+
+[こちらよりダウンロード](/instruction_manual/ピンポンフラッシュ取扱説明書.pdf"取扱説明書")  
 
 ## 概要
 
