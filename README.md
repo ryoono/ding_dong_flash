@@ -1,5 +1,7 @@
 # ding_dong_flash  
 
+![システム全容](./data/完成品.png)
+
 ## 取扱説明書  
 
 [こちらよりダウンロード](/instruction_manual/ピンポンフラッシュ取扱説明書.pdf "取扱説明書")  

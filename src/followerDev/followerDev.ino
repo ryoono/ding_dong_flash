@@ -37,8 +37,9 @@ int sp_flag;
 #define SP_RESET_CNT  2000  // 2000[ms]
 
 // 書き込むデバイス子機に対応する定数をコメントアウトしてコンパイルする
-//#define FOLLOWER1
-#define FOLLOWER2
+
+#define FOLLOWER1
+//#define FOLLOWER2
 //#define FOLLOWER3
 
 // この書き方あんまりよくない気がする
